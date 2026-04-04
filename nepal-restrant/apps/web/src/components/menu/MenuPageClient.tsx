@@ -7,6 +7,7 @@ import Image from "next/image";
 import { Plus, Minus, ShoppingCart, Search, X } from "lucide-react";
 import CartDrawer from "@/components/menu/CartDrawer";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const CATEGORY_ORDER = [
   "Soup",
@@ -25,6 +26,17 @@ const CATEGORY_ORDER = [
   "Beer",
   "Tea & Coffee",
 ];
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 24, scale: 0.96 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.4, delay: i * 0.06, ease: [0.25, 0.46, 0.45, 0.94] },
+  }),
+  exit: { opacity: 0, y: -16, scale: 0.97, transition: { duration: 0.22 } },
+};
 
 export default function MenuPageClient() {
   const searchParams = useSearchParams();
@@ -51,7 +63,7 @@ export default function MenuPageClient() {
         setMenuData(res.data.grouped);
         const firstCat = Object.keys(res.data.grouped)[0];
         setActiveCategory(firstCat || "");
-      } catch (err) {
+      } catch {
         toast.error("Failed to load menu");
       } finally {
         setLoading(false);
@@ -82,6 +94,8 @@ export default function MenuPageClient() {
         )
     : menuData[activeCategory] || [];
 
+  const count = itemCount();
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -98,28 +112,43 @@ export default function MenuPageClient() {
       {/* Header */}
       <header className="sticky top-0 z-40 glass border-b border-border">
         <div className="container-section flex items-center justify-between h-16">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
             <h1 className="font-serif text-xl font-bold text-text-primary">
               Haveli Menu
             </h1>
             {tableId >= 1 && tableId <= 5 && (
               <p className="text-xs text-accent font-medium">Table {tableId}</p>
             )}
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
             id="cart-btn"
             onClick={() => setCartOpen(true)}
             className="relative p-2 rounded-full bg-surface-2 border border-border hover:border-accent transition-colors"
             aria-label="Open cart"
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.06 }}
           >
             <ShoppingCart size={20} className="text-text-primary" />
-            {itemCount() > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-background text-xs font-bold flex items-center justify-center">
-                {itemCount()}
-              </span>
-            )}
-          </button>
+            <AnimatePresence>
+              {count > 0 && (
+                <motion.span
+                  key={count}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-accent text-background text-xs font-bold flex items-center justify-center"
+                >
+                  {count}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
         </div>
 
         {/* Search */}
@@ -134,14 +163,19 @@ export default function MenuPageClient() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-surface-2 border border-border rounded-full pl-9 pr-9 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent transition-colors"
             />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-              >
-                <X size={14} />
-              </button>
-            )}
+            <AnimatePresence>
+              {searchQuery && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                >
+                  <X size={14} />
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </header>
@@ -156,15 +190,24 @@ export default function MenuPageClient() {
                   key={cat}
                   id={`cat-${cat.replace(/\s+/g, "-").toLowerCase()}`}
                   onClick={() => setActiveCategory(cat)}
-                  className={`w-full text-left px-4 py-3 text-sm transition-all ${
+                  className={`w-full text-left px-4 py-3 text-sm transition-all relative ${
                     activeCategory === cat
                       ? "text-accent bg-accent/10 border-r-2 border-accent font-medium"
                       : "text-text-muted hover:text-text-primary hover:bg-surface-2"
                   }`}
                 >
-                  {cat}
-                  <span className="ml-1 text-xs text-text-muted">
-                    ({menuData[cat]?.length || 0})
+                  {activeCategory === cat && (
+                    <motion.span
+                      layoutId="active-cat-indicator"
+                      className="absolute inset-0 bg-accent/10 border-r-2 border-accent"
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative">
+                    {cat}
+                    <span className="ml-1 text-xs text-text-muted">
+                      ({menuData[cat]?.length || 0})
+                    </span>
                   </span>
                 </button>
               ))}
@@ -194,105 +237,158 @@ export default function MenuPageClient() {
           )}
 
           {/* Category heading */}
-          <h2 className="font-serif text-2xl font-bold text-text-primary mb-6">
-            {searchQuery ? `Search: "${searchQuery}"` : activeCategory}
-          </h2>
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={searchQuery || activeCategory}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+              className="font-serif text-2xl font-bold text-text-primary mb-6"
+            >
+              {searchQuery ? `Search: "${searchQuery}"` : activeCategory}
+            </motion.h2>
+          </AnimatePresence>
 
           {/* Items grid */}
           {filteredItems.length === 0 ? (
-            <div className="text-center py-20">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
               <p className="text-text-muted">No items found</p>
-            </div>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filteredItems.map((item) => {
-                const qty = getItemQty(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    id={`menu-item-${item.id}`}
-                    className="group bg-surface rounded-2xl overflow-hidden border border-border hover:border-accent/40 transition-all hover:shadow-card-hover"
-                  >
-                    {/* Image */}
-                    <div className="relative h-44 overflow-hidden">
-                      <Image
-                        src={item.imageUrl || "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=400&q=80"}
-                        alt={item.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={searchQuery || activeCategory}
+                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
+              >
+                {filteredItems.map((item, index) => {
+                  const qty = getItemQty(item.id);
+                  return (
+                    <motion.div
+                      key={item.id}
+                      id={`menu-item-${item.id}`}
+                      custom={index}
+                      variants={itemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      className="group bg-surface rounded-2xl overflow-hidden border border-border hover:border-accent/40 transition-all hover:shadow-card-hover"
+                    >
+                      {/* Image */}
+                      <div className="relative h-44 overflow-hidden">
+                        <Image
+                          src={item.imageUrl || "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=400&q=80"}
+                          alt={item.name}
+                          fill
+                          className="object-cover group-hover:scale-108 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-surface/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </div>
 
-                    {/* Info */}
-                    <div className="p-4">
-                      <h3 className="font-semibold text-text-primary text-sm mb-1 line-clamp-1">
-                        {item.name}
-                      </h3>
-                      <p className="text-accent font-bold text-lg mb-3">
-                        Rs. {item.price}
-                      </p>
+                      {/* Info */}
+                      <div className="p-4">
+                        <h3 className="font-semibold text-text-primary text-sm mb-1 line-clamp-1">
+                          {item.name}
+                        </h3>
+                        <p className="text-accent font-bold text-lg mb-3">
+                          Rs. {item.price}
+                        </p>
 
-                      {/* Add to cart controls */}
-                      {qty === 0 ? (
-                        <button
-                          id={`add-${item.id}`}
-                          onClick={() => {
-                            addItem(item);
-                            toast.success(`${item.name} added to cart`);
-                          }}
-                          className="w-full py-2 rounded-xl bg-accent/10 border border-accent/40 text-accent text-sm font-medium hover:bg-accent hover:text-background transition-all flex items-center justify-center gap-2"
-                        >
-                          <Plus size={16} />
-                          Add to Cart
-                        </button>
-                      ) : (
-                        <div className="flex items-center justify-between">
-                          <button
-                            id={`dec-${item.id}`}
-                            onClick={() => updateQuantity(item.id, qty - 1)}
-                            className="w-9 h-9 rounded-full bg-surface-2 border border-border flex items-center justify-center hover:border-accent transition-colors"
-                          >
-                            <Minus size={14} className="text-text-primary" />
-                          </button>
-                          <span className="font-bold text-text-primary">
-                            {qty}
-                          </span>
-                          <button
-                            id={`inc-${item.id}`}
-                            onClick={() => {
-                              addItem(item);
-                            }}
-                            className="w-9 h-9 rounded-full bg-accent flex items-center justify-center hover:opacity-90 transition-opacity"
-                          >
-                            <Plus size={14} className="text-background" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                        {/* Add to cart controls */}
+                        <AnimatePresence mode="wait">
+                          {qty === 0 ? (
+                            <motion.button
+                              key="add"
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              transition={{ duration: 0.18 }}
+                              id={`add-${item.id}`}
+                              onClick={() => {
+                                addItem(item);
+                                toast.success(`${item.name} added to cart`);
+                              }}
+                              whileTap={{ scale: 0.94 }}
+                              className="w-full py-2 rounded-xl bg-accent/10 border border-accent/40 text-accent text-sm font-medium hover:bg-accent hover:text-background transition-all flex items-center justify-center gap-2"
+                            >
+                              <Plus size={16} />
+                              Add to Cart
+                            </motion.button>
+                          ) : (
+                            <motion.div
+                              key="qty"
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.9 }}
+                              transition={{ duration: 0.18 }}
+                              className="flex items-center justify-between"
+                            >
+                              <motion.button
+                                id={`dec-${item.id}`}
+                                onClick={() => updateQuantity(item.id, qty - 1)}
+                                whileTap={{ scale: 0.88 }}
+                                className="w-9 h-9 rounded-full bg-surface-2 border border-border flex items-center justify-center hover:border-accent transition-colors"
+                              >
+                                <Minus size={14} className="text-text-primary" />
+                              </motion.button>
+                              <motion.span
+                                key={qty}
+                                initial={{ scale: 1.4, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="font-bold text-text-primary"
+                              >
+                                {qty}
+                              </motion.span>
+                              <motion.button
+                                id={`inc-${item.id}`}
+                                onClick={() => addItem(item)}
+                                whileTap={{ scale: 0.88 }}
+                                className="w-9 h-9 rounded-full bg-accent flex items-center justify-center hover:opacity-90 transition-opacity"
+                              >
+                                <Plus size={14} className="text-background" />
+                              </motion.button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </AnimatePresence>
           )}
         </main>
       </div>
 
       {/* Floating cart button (mobile) */}
-      {itemCount() > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 md:hidden">
-          <button
-            id="floating-cart-btn"
-            onClick={() => setCartOpen(true)}
-            className="flex items-center gap-3 px-6 py-3.5 rounded-full bg-gradient-gold text-background font-semibold shadow-gold-lg hover:opacity-90 transition-opacity"
+      <AnimatePresence>
+        {count > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 80 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 80 }}
+            transition={{ type: "spring", stiffness: 300, damping: 22 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 md:hidden"
           >
-            <ShoppingCart size={20} />
-            <span>View Cart · Rs. {useCartStore.getState().total()}</span>
-            <span className="bg-background/20 rounded-full w-6 h-6 flex items-center justify-center text-xs">
-              {itemCount()}
-            </span>
-          </button>
-        </div>
-      )}
+            <motion.button
+              id="floating-cart-btn"
+              onClick={() => setCartOpen(true)}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-3 px-6 py-3.5 rounded-full bg-gradient-gold text-background font-semibold shadow-gold-lg hover:opacity-90 transition-opacity"
+            >
+              <ShoppingCart size={20} />
+              <span>View Cart · Rs. {useCartStore.getState().total()}</span>
+              <span className="bg-background/20 rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                {count}
+              </span>
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Cart Drawer */}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} tableId={tableId} />

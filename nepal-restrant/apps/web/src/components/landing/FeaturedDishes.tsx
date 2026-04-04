@@ -1,5 +1,7 @@
+"use client";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 const featuredSections = [
   {
@@ -32,6 +34,15 @@ const featuredSections = [
   },
 ];
 
+const menuItemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.45, delay: i * 0.1, ease: "easeOut" },
+  }),
+};
+
 export default function FeaturedDishes() {
   return (
     <section id="featured" className="py-24 bg-background">
@@ -40,15 +51,25 @@ export default function FeaturedDishes() {
           <div
             key={section.id}
             id={section.id}
-            className={`grid lg:grid-cols-2 gap-16 items-center ${
-              section.imageLeft ? "lg:flex-row-reverse" : ""
-            }`}
+            className={`grid lg:grid-cols-2 gap-16 items-center`}
           >
             {/* Text side */}
-            <div className={`space-y-8 ${section.imageLeft ? "lg:order-2" : "lg:order-1"}`}>
+            <motion.div
+              initial={{ opacity: 0, x: section.imageLeft ? 40 : -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className={`space-y-8 ${section.imageLeft ? "lg:order-2" : "lg:order-1"}`}
+            >
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-px w-8 bg-accent" />
+                  <motion.div
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="h-px w-8 bg-accent origin-left"
+                  />
                   <span className="text-accent text-sm font-medium uppercase tracking-widest">
                     {section.tag}
                   </span>
@@ -60,14 +81,22 @@ export default function FeaturedDishes() {
 
               {/* Item list */}
               <div className="space-y-4">
-                {section.items.map((item) => (
-                  <div
+                {section.items.map((item, i) => (
+                  <motion.div
                     key={item.name}
+                    custom={i}
+                    variants={menuItemVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-40px" }}
                     className="group flex items-start justify-between gap-4 pb-4 border-b border-border hover:border-accent/30 transition-colors"
                   >
                     <div className="space-y-0.5 flex-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-accent/60 group-hover:bg-accent transition-colors" />
+                        <motion.div
+                          whileHover={{ scale: 1.6 }}
+                          className="w-1.5 h-1.5 rounded-full bg-accent/60 group-hover:bg-accent transition-colors"
+                        />
                         <span className="font-medium text-text-primary group-hover:text-accent transition-colors">
                           {item.name}
                         </span>
@@ -77,7 +106,7 @@ export default function FeaturedDishes() {
                     <span className="text-accent font-bold text-lg whitespace-nowrap">
                       Rs. {item.price}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
@@ -87,32 +116,52 @@ export default function FeaturedDishes() {
                 className="inline-flex items-center gap-2 text-accent hover:text-accent-light transition-colors group"
               >
                 <span className="text-sm font-medium">View Full Menu</span>
-                <span className="transition-transform group-hover:translate-x-1">→</span>
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.4, repeat: Infinity }}
+                >
+                  →
+                </motion.span>
               </Link>
-            </div>
+            </motion.div>
 
             {/* Image side */}
-            <div className={`relative ${section.imageLeft ? "lg:order-1" : "lg:order-2"}`}>
-              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border-gold-glow">
+            <motion.div
+              initial={{ opacity: 0, x: section.imageLeft ? -40 : 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className={`relative ${section.imageLeft ? "lg:order-1" : "lg:order-2"}`}
+            >
+              <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border-gold-glow group">
                 <Image
                   src={section.image}
                   alt={section.imageAlt}
                   fill
-                  className="object-cover hover:scale-105 transition-transform duration-700"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                {/* Gold corner accent */}
+                {/* Gold corner accents */}
                 <div className="absolute top-4 right-4 w-12 h-12 border-t-2 border-r-2 border-accent/50 rounded-tr-xl" />
                 <div className="absolute bottom-4 left-4 w-12 h-12 border-b-2 border-l-2 border-accent/50 rounded-bl-xl" />
+                {/* Shimmer on hover */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
 
-              {/* Tag bubble */}
-              <div className="absolute -bottom-6 -right-6 md:right-6 glass rounded-2xl p-4 shadow-gold border-gold-glow">
+              {/* Price bubble */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.7 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 200, damping: 14 }}
+                whileHover={{ scale: 1.06 }}
+                className="absolute -bottom-6 -right-6 md:right-6 glass rounded-2xl p-4 shadow-gold border-gold-glow"
+              >
                 <div className="text-2xl font-bold text-accent font-serif">
                   Rs. {Math.min(...section.items.map((i) => i.price))}+
                 </div>
                 <div className="text-xs text-text-muted">Starting from</div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         ))}
       </div>

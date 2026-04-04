@@ -112,6 +112,36 @@ body {
   animation: shimmer 1.5s linear infinite;
 }
 
+/* Framer-motion page transition wrapper */
+.page-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Stagger reveal utility — add to parent, children get delay via CSS var */
+.stagger-children > * {
+  --stagger-delay: 0.08s;
+}
+.stagger-children > *:nth-child(1) { animation-delay: calc(var(--stagger-delay) * 1); }
+.stagger-children > *:nth-child(2) { animation-delay: calc(var(--stagger-delay) * 2); }
+.stagger-children > *:nth-child(3) { animation-delay: calc(var(--stagger-delay) * 3); }
+.stagger-children > *:nth-child(4) { animation-delay: calc(var(--stagger-delay) * 4); }
+.stagger-children > *:nth-child(5) { animation-delay: calc(var(--stagger-delay) * 5); }
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Section container */
 .container-section {
   max-width: 1280px;

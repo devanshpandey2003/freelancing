@@ -36,6 +36,9 @@ module.exports = {
         float: "float 6s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
         pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "spin-slow": "spin 8s linear infinite",
+        "gold-pulse": "goldPulse 3s ease-in-out infinite",
+        "badge-pop": "badgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
       },
       keyframes: {
         fadeIn: {
@@ -56,11 +59,19 @@ module.exports = {
         },
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-10px)" },
+          "50%": { transform: "translateY(-12px)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
+        },
+        goldPulse: {
+          "0%, 100%": { boxShadow: "0 0 20px rgba(212, 168, 83, 0.15)" },
+          "50%": { boxShadow: "0 0 50px rgba(212, 168, 83, 0.35)" },
+        },
+        badgePop: {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
         },
       },
       backgroundImage: {
