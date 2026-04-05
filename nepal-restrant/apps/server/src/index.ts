@@ -11,6 +11,7 @@ import ordersRouter from "./routes/orders";
 import qrRouter from "./routes/qr";
 import uploadRouter from "./routes/upload";
 import dashboardRouter from "./routes/dashboard";
+import inventoryRouter from "./routes/inventory";
 import { setupSocket } from "./socket";
 
 const app = express();
@@ -57,6 +58,7 @@ app.use("/api/orders", ordersRouter);
 app.use("/api/qr", qrRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/inventory", inventoryRouter);
 
 // Setup Socket.io events
 setupSocket(io);

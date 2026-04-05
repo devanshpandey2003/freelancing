@@ -67,3 +67,39 @@ enum AdminRole {
   SUPER_ADMIN
   STAFF
 }
+
+enum StockAction {
+  ADD
+  REMOVE
+}
+
+model InventoryCategory {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  items     InventoryItem[]
+  createdAt DateTime        @default(now())
+}
+
+model InventoryItem {
+  id                String            @id @default(cuid())
+  name              String
+  quantity          Float             @default(0)
+  unit              String
+  price             Float?
+  lowStockThreshold Float             @default(5)
+  categoryId        String
+  category          InventoryCategory @relation(fields: [categoryId], references: [id])
+  logs              InventoryLog[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model InventoryLog {
+  id        String        @id @default(cuid())
+  itemId    String
+  action    StockAction
+  quantity  Float
+  note      String?
+  item      InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+}

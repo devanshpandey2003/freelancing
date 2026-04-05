@@ -83,3 +83,17 @@ export const uploadApi = {
     });
   },
 };
+
+// ── Inventory ─────────────────────────────────────────────────────────────────
+export const inventoryApi = {
+  getCategories: () => api.get("/inventory/categories"),
+  createCategory: (name: string) => api.post("/inventory/categories", { name }),
+  updateCategory: (id: string, name: string) => api.put(`/inventory/categories/${id}`, { name }),
+  deleteCategory: (id: string) => api.delete(`/inventory/categories/${id}`),
+  getItems: (categoryId?: string) => api.get("/inventory/items", { params: categoryId ? { categoryId } : {} }),
+  createItem: (data: object) => api.post("/inventory/items", data),
+  updateItem: (id: string, data: object) => api.put(`/inventory/items/${id}`, data),
+  deleteItem: (id: string) => api.delete(`/inventory/items/${id}`),
+  adjustStock: (id: string, data: object) => api.post(`/inventory/items/${id}/stock`, data),
+  getLogs: (id: string) => api.get(`/inventory/items/${id}/logs`),
+};

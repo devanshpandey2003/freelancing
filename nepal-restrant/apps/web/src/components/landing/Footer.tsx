@@ -101,7 +101,7 @@ export default function Footer() {
         </div>
 
         {/* Gold divider */}
-        <div className="gold-divider my-12" />
+        <div className="gold-divider mt-16 mb-12" />
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-text-muted">

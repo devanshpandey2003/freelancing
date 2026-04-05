@@ -12,12 +12,14 @@ import {
   Menu,
   X,
   ChefHat,
+  Package,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/admin/orders", icon: ClipboardList, label: "Orders" },
   { href: "/admin/menu", icon: UtensilsCrossed, label: "Menu" },
+  { href: "/admin/inventory", icon: Package, label: "Inventory" },
   { href: "/admin/qr-codes", icon: QrCode, label: "QR Codes" },
   { href: "/admin/team", icon: Users, label: "Team" },
 ];
