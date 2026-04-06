@@ -10,31 +10,36 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 // POST /api/auth/login
 router.post("/login", async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const admin = await prisma.admin.findUnique({ where: { email } });
+    if (!admin) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const isValid = await bcrypt.compare(password, admin.password);
+    if (!isValid) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: admin.id, email: admin.email, role: admin.role },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({
+      token,
+      admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role },
+    });
+  } catch (error: any) {
+    console.error("Login Error:", error);
+    return res.status(500).json({ error: "Database error or server crash", detail: error.message });
   }
-
-  const admin = await prisma.admin.findUnique({ where: { email } });
-  if (!admin) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  const isValid = await bcrypt.compare(password, admin.password);
-  if (!isValid) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  const token = jwt.sign(
-    { id: admin.id, email: admin.email, role: admin.role },
-    JWT_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  return res.json({
-    token,
-    admin: { id: admin.id, name: admin.name, email: admin.email, role: admin.role },
-  });
 });
 
 // POST /api/auth/register (Super Admin only can create new admins)
