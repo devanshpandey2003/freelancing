@@ -3,8 +3,6 @@ import QRCode from "qrcode";
 
 const router = Router();
 
-const BASE_URL = process.env.CLIENT_URL || "http://localhost:3000";
-
 // GET /api/qr/:tableId — generate QR code as PNG data URL
 router.get("/:tableId", async (req: Request, res: Response) => {
   const tableId = parseInt(req.params.tableId);
@@ -12,6 +10,7 @@ router.get("/:tableId", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Table ID must be between 1 and 5" });
   }
 
+  const BASE_URL = process.env.CLIENT_URL || "http://localhost:3000";
   const url = `${BASE_URL}/menu?table=${tableId}`;
 
   try {
@@ -48,6 +47,7 @@ router.get("/:tableId", async (req: Request, res: Response) => {
 
 // GET /api/qr — generate all 5 QR codes
 router.get("/", async (_req: Request, res: Response) => {
+  const BASE_URL = process.env.CLIENT_URL || "http://localhost:3000";
   const codes = await Promise.all(
     [1, 2, 3, 4, 5].map(async (tableId) => {
       const url = `${BASE_URL}/menu?table=${tableId}`;

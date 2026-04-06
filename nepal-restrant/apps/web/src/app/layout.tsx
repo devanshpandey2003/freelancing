@@ -36,7 +36,7 @@ export default function RootLayout({
         <div className="noise-overlay" aria-hidden="true" />
         {children}
         <Toaster
-          position="top-right"
+          position="bottom-left"
           toastOptions={{
             style: {
               background: "#1e1e1e",
