@@ -17,11 +17,15 @@ import { setupSocket } from "./socket";
 const app = express();
 const httpServer = createServer(app);
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://haveeli.vercel.app",
+  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : [])
+].map(url => url.replace(/\/$/, "")); // Remove trailing slashes just in case
 
 export const io = new Server(httpServer, {
   cors: {
-    origin: CLIENT_URL,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -36,7 +40,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Middleware
 app.use(
   cors({
-    origin: CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -63,7 +67,7 @@ app.use("/api/inventory", inventoryRouter);
 // Setup Socket.io events
 setupSocket(io);
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 httpServer.listen(PORT, () => {
   console.log(`🚀 Haveli Server running on port ${PORT}`);
   console.log(`📡 Socket.io ready`);
