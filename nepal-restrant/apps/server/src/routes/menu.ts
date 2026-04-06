@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middlewares/auth";
 
 const router = Router();
-const prisma = new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
+const prisma = new PrismaClient();
 
 // GET /api/menu — public, returns all items grouped by category
 router.get("/", async (_req: Request, res: Response) => {

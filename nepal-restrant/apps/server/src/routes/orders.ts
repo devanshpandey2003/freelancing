@@ -5,7 +5,7 @@ import { io } from "../index";
 import { emitNewOrder, emitOrderStatusUpdate } from "../socket";
 
 const router = Router();
-const prisma = new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
+const prisma = new PrismaClient();
 
 // POST /api/orders — customer places order
 router.post("/", async (req: Request, res: Response) => {

@@ -5,7 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { authMiddleware, AuthRequest, superAdminOnly } from "../middlewares/auth";
 
 const router = Router();
-const prisma = new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
+const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
 // POST /api/auth/login
