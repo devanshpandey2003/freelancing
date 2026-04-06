@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { menuApi } from "@/lib/api";
 import { useCartStore, type MenuItem } from "@/store/cart";
 import Image from "next/image";
-import { Plus, Minus, ShoppingCart, Search, X } from "lucide-react";
+import { Plus, Minus, ShoppingCart, Search, X, Menu, ChefHat, UtensilsCrossed } from "lucide-react";
 import CartDrawer from "@/components/menu/CartDrawer";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +26,24 @@ const CATEGORY_ORDER = [
   "Beer",
   "Tea & Coffee",
 ];
+
+const CATEGORY_ICONS: Record<string, string> = {
+  "Soup": "🍲",
+  "Chicken Momo": "🥟",
+  "Veg Momo": "🥟",
+  "Chicken": "🍗",
+  "Veg Items": "🥗",
+  "Chaumin": "🍜",
+  "Salad": "🥙",
+  "Sadeko": "🌶️",
+  "Egg Items": "🍳",
+  "Burgers": "🍔",
+  "Sausage": "🌭",
+  "Breakfast": "☕",
+  "Soft Drinks": "🥤",
+  "Beer": "🍺",
+  "Tea & Coffee": "☕",
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 24, scale: 0.96 },
@@ -49,6 +67,7 @@ export default function MenuPageClient() {
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [cartOpen, setCartOpen] = useState(false);
+  const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false);
 
   useEffect(() => {
     if (tableId >= 1 && tableId <= 5) {
@@ -109,22 +128,115 @@ export default function MenuPageClient() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 glass border-b border-border">
-        <div className="container-section flex items-center justify-between h-16">
-          <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <h1 className="font-serif text-xl font-bold text-text-primary">
-              Haveli Menu
-            </h1>
-            {tableId >= 1 && tableId <= 5 && (
-              <p className="text-xs text-accent font-medium">Table {tableId}</p>
-            )}
-          </motion.div>
+      {/* Mobile category drawer overlay */}
+      <AnimatePresence>
+        {categoryDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/60 z-30 md:hidden"
+              onClick={() => setCategoryDrawerOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 32 }}
+              className="fixed top-0 left-0 h-full z-40 w-72 bg-surface border-r border-border flex flex-col md:hidden"
+            >
+              {/* Drawer header */}
+              <div className="p-5 border-b border-border flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-gold flex items-center justify-center shrink-0">
+                  <UtensilsCrossed size={16} className="text-background" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-serif text-base font-bold text-text-primary">Categories</div>
+                  <div className="text-xs text-text-muted">{allCategories.length} sections</div>
+                </div>
+                <button
+                  onClick={() => setCategoryDrawerOpen(false)}
+                  className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
 
+              {/* Category list */}
+              <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
+                {allCategories.map((cat) => {
+                  const active = activeCategory === cat && !searchQuery;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        setActiveCategory(cat);
+                        setSearchQuery("");
+                        setCategoryDrawerOpen(false);
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 ${
+                        active
+                          ? "bg-accent/15 text-accent border border-accent/30 font-medium"
+                          : "text-text-muted hover:text-text-primary hover:bg-surface-2"
+                      }`}
+                    >
+                      <span className="text-base">{CATEGORY_ICONS[cat] || "🍽️"}</span>
+                      <span className="flex-1">{cat}</span>
+                      <span className="text-xs opacity-60">({menuData[cat]?.length || 0})</span>
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Table info at bottom */}
+              {tableId >= 1 && tableId <= 5 && (
+                <div className="p-4 border-t border-border">
+                  <div className="px-4 py-3 rounded-xl bg-surface-2 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center">
+                      <span className="text-accent font-bold text-sm">{tableId}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-text-primary">Table {tableId}</p>
+                      <p className="text-xs text-text-muted">Your table</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Header */}
+      <header className="sticky top-0 z-20 glass border-b border-border">
+        <div className="flex items-center justify-between h-14 px-3 sm:px-4">
+          {/* Left: hamburger (mobile) */}
+          <div className="flex items-center gap-3">
+            <button
+              id="category-drawer-btn"
+              onClick={() => setCategoryDrawerOpen(true)}
+              className="md:hidden p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors"
+              aria-label="Open categories"
+            >
+              <Menu size={22} />
+            </button>
+            <motion.div
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <h1 className="font-serif text-lg sm:text-xl font-bold text-text-primary leading-tight">
+                Haveli Menu
+              </h1>
+              {tableId >= 1 && tableId <= 5 && (
+                <p className="text-xs text-accent font-medium leading-none">Table {tableId}</p>
+              )}
+            </motion.div>
+          </div>
+
+          {/* Right: cart button */}
           <motion.button
             id="cart-btn"
             onClick={() => setCartOpen(true)}
@@ -152,9 +264,9 @@ export default function MenuPageClient() {
         </div>
 
         {/* Search */}
-        <div className="container-section pb-3">
+        <div className="px-3 sm:px-4 pb-3">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               id="menu-search"
               type="text"
@@ -178,10 +290,25 @@ export default function MenuPageClient() {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Active category pill (mobile, shows when not searching) */}
+        {!searchQuery && activeCategory && (
+          <div className="md:hidden px-3 pb-2.5 flex items-center gap-2">
+            <span className="text-xs text-text-muted">Viewing:</span>
+            <button
+              onClick={() => setCategoryDrawerOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/15 border border-accent/30 text-accent text-xs font-medium"
+            >
+              <span>{CATEGORY_ICONS[activeCategory] || "🍽️"}</span>
+              <span>{activeCategory}</span>
+              <span className="opacity-60">({menuData[activeCategory]?.length || 0})</span>
+            </button>
+          </div>
+        )}
       </header>
 
       <div className="flex">
-        {/* Sidebar categories (desktop) */}
+        {/* Sidebar categories (desktop only) */}
         {!searchQuery && (
           <aside className="hidden md:block w-52 shrink-0 sticky top-[108px] h-[calc(100vh-108px)] overflow-y-auto border-r border-border">
             <nav className="py-4">
@@ -203,9 +330,10 @@ export default function MenuPageClient() {
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
-                  <span className="relative">
-                    {cat}
-                    <span className="ml-1 text-xs text-text-muted">
+                  <span className="relative flex items-center gap-2">
+                    <span>{CATEGORY_ICONS[cat] || "🍽️"}</span>
+                    <span>{cat}</span>
+                    <span className="ml-auto text-xs text-text-muted">
                       ({menuData[cat]?.length || 0})
                     </span>
                   </span>
@@ -216,26 +344,7 @@ export default function MenuPageClient() {
         )}
 
         {/* Main content */}
-        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-28 md:pb-6">
-          {/* Mobile category tabs */}
-          {!searchQuery && (
-            <div className="md:hidden flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
-              {allCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`shrink-0 px-4 py-1.5 rounded-full text-sm transition-all ${
-                    activeCategory === cat
-                      ? "bg-accent text-background font-semibold"
-                      : "bg-surface-2 text-text-muted border border-border"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
-
+        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-28">
           {/* Category heading */}
           <AnimatePresence mode="wait">
             <motion.h2
@@ -244,13 +353,13 @@ export default function MenuPageClient() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              className="font-serif text-xl sm:text-2xl font-bold text-text-primary mb-3 sm:mb-6"
+              className="font-serif text-lg sm:text-2xl font-bold text-text-primary mb-3 sm:mb-5"
             >
-              {searchQuery ? `Search: "${searchQuery}"` : activeCategory}
+              {searchQuery ? `"${searchQuery}"` : activeCategory}
             </motion.h2>
           </AnimatePresence>
 
-          {/* Items grid */}
+          {/* Items grid — always 2 cols on mobile, 3 on xl */}
           {filteredItems.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -279,19 +388,19 @@ export default function MenuPageClient() {
                       className="group bg-surface rounded-xl sm:rounded-2xl overflow-hidden border border-border hover:border-accent/40 transition-all hover:shadow-card-hover flex flex-col"
                     >
                       {/* Image */}
-                      <div className="relative h-28 sm:h-44 overflow-hidden shrink-0">
+                      <div className="relative h-32 sm:h-44 overflow-hidden shrink-0">
                         <Image
                           src={item.imageUrl || "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=400&q=80"}
                           alt={item.name}
                           fill
-                          className="object-cover group-hover:scale-108 transition-transform duration-500"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-surface/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
 
                       {/* Info */}
                       <div className="p-2.5 sm:p-4 flex flex-col flex-1">
-                        <h3 className="font-semibold text-text-primary text-xs sm:text-sm mb-0.5 sm:mb-1 line-clamp-2 leading-tight">
+                        <h3 className="font-semibold text-text-primary text-xs sm:text-sm mb-1 line-clamp-2 leading-tight">
                           {item.name}
                         </h3>
                         <p className="text-accent font-bold text-sm sm:text-lg mb-2 sm:mb-3">
@@ -314,11 +423,10 @@ export default function MenuPageClient() {
                                   toast.success(`${item.name} added`);
                                 }}
                                 whileTap={{ scale: 0.94 }}
-                                className="w-full py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-accent/10 border border-accent/40 text-accent text-xs sm:text-sm font-medium hover:bg-accent hover:text-background transition-all flex items-center justify-center gap-1 sm:gap-2"
+                                className="w-full py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-accent/10 border border-accent/40 text-accent text-xs sm:text-sm font-medium hover:bg-accent hover:text-background transition-all flex items-center justify-center gap-1.5"
                               >
                                 <Plus size={13} />
-                                <span className="hidden xs:inline">Add</span>
-                                <span className="xs:hidden">Add</span>
+                                Add
                               </motion.button>
                             ) : (
                               <motion.div
@@ -333,7 +441,7 @@ export default function MenuPageClient() {
                                   id={`dec-${item.id}`}
                                   onClick={() => updateQuantity(item.id, qty - 1)}
                                   whileTap={{ scale: 0.88 }}
-                                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-surface-2 border border-border flex items-center justify-center hover:border-accent transition-colors"
+                                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-surface-2 border border-border flex items-center justify-center hover:border-accent transition-colors"
                                 >
                                   <Minus size={12} className="text-text-primary" />
                                 </motion.button>
@@ -349,7 +457,7 @@ export default function MenuPageClient() {
                                   id={`inc-${item.id}`}
                                   onClick={() => addItem(item)}
                                   whileTap={{ scale: 0.88 }}
-                                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-accent flex items-center justify-center hover:opacity-90 transition-opacity"
+                                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-accent flex items-center justify-center hover:opacity-90 transition-opacity"
                                 >
                                   <Plus size={12} className="text-background" />
                                 </motion.button>
@@ -385,7 +493,7 @@ export default function MenuPageClient() {
             >
               <ShoppingCart size={20} />
               <span>View Cart · Rs. {useCartStore.getState().total()}</span>
-              <span className="bg-background/20 rounded-full w-6 h-6 flex items-center justify-center text-xs">
+              <span className="bg-background/20 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                 {count}
               </span>
             </motion.button>
