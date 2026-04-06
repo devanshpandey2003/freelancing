@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middlewares/auth";
 
 const router = Router();
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
 
 // ── Categories ────────────────────────────────────────────────────────────────
 
