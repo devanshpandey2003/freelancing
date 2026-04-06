@@ -1,4 +1,12 @@
 import "dotenv/config";
+
+// Validate critical env vars at startup
+if (!process.env.DATABASE_URL) {
+  console.error("❌ FATAL: DATABASE_URL environment variable is not set");
+  process.exit(1);
+}
+console.log("✅ DATABASE_URL is set:", process.env.DATABASE_URL.slice(0, 30) + "...");
+
 import express from "express";
 import cors from "cors";
 import { createServer } from "http";
