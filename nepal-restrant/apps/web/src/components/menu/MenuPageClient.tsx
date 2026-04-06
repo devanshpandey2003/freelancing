@@ -216,7 +216,7 @@ export default function MenuPageClient() {
         )}
 
         {/* Main content */}
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 p-3 sm:p-4 md:p-6 pb-28 md:pb-6">
           {/* Mobile category tabs */}
           {!searchQuery && (
             <div className="md:hidden flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide">
@@ -244,7 +244,7 @@ export default function MenuPageClient() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
-              className="font-serif text-2xl font-bold text-text-primary mb-6"
+              className="font-serif text-xl sm:text-2xl font-bold text-text-primary mb-3 sm:mb-6"
             >
               {searchQuery ? `Search: "${searchQuery}"` : activeCategory}
             </motion.h2>
@@ -263,7 +263,7 @@ export default function MenuPageClient() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={searchQuery || activeCategory}
-                className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"
+                className="grid grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-4"
               >
                 {filteredItems.map((item, index) => {
                   const qty = getItemQty(item.id);
@@ -276,10 +276,10 @@ export default function MenuPageClient() {
                       initial="hidden"
                       animate="visible"
                       exit="exit"
-                      className="group bg-surface rounded-2xl overflow-hidden border border-border hover:border-accent/40 transition-all hover:shadow-card-hover"
+                      className="group bg-surface rounded-xl sm:rounded-2xl overflow-hidden border border-border hover:border-accent/40 transition-all hover:shadow-card-hover flex flex-col"
                     >
                       {/* Image */}
-                      <div className="relative h-44 overflow-hidden">
+                      <div className="relative h-28 sm:h-44 overflow-hidden shrink-0">
                         <Image
                           src={item.imageUrl || "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=400&q=80"}
                           alt={item.name}
@@ -290,70 +290,73 @@ export default function MenuPageClient() {
                       </div>
 
                       {/* Info */}
-                      <div className="p-4">
-                        <h3 className="font-semibold text-text-primary text-sm mb-1 line-clamp-1">
+                      <div className="p-2.5 sm:p-4 flex flex-col flex-1">
+                        <h3 className="font-semibold text-text-primary text-xs sm:text-sm mb-0.5 sm:mb-1 line-clamp-2 leading-tight">
                           {item.name}
                         </h3>
-                        <p className="text-accent font-bold text-lg mb-3">
+                        <p className="text-accent font-bold text-sm sm:text-lg mb-2 sm:mb-3">
                           Rs. {item.price}
                         </p>
 
                         {/* Add to cart controls */}
-                        <AnimatePresence mode="wait">
-                          {qty === 0 ? (
-                            <motion.button
-                              key="add"
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.9 }}
-                              transition={{ duration: 0.18 }}
-                              id={`add-${item.id}`}
-                              onClick={() => {
-                                addItem(item);
-                                toast.success(`${item.name} added to cart`);
-                              }}
-                              whileTap={{ scale: 0.94 }}
-                              className="w-full py-2 rounded-xl bg-accent/10 border border-accent/40 text-accent text-sm font-medium hover:bg-accent hover:text-background transition-all flex items-center justify-center gap-2"
-                            >
-                              <Plus size={16} />
-                              Add to Cart
-                            </motion.button>
-                          ) : (
-                            <motion.div
-                              key="qty"
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.9 }}
-                              transition={{ duration: 0.18 }}
-                              className="flex items-center justify-between"
-                            >
+                        <div className="mt-auto">
+                          <AnimatePresence mode="wait">
+                            {qty === 0 ? (
                               <motion.button
-                                id={`dec-${item.id}`}
-                                onClick={() => updateQuantity(item.id, qty - 1)}
-                                whileTap={{ scale: 0.88 }}
-                                className="w-9 h-9 rounded-full bg-surface-2 border border-border flex items-center justify-center hover:border-accent transition-colors"
+                                key="add"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.18 }}
+                                id={`add-${item.id}`}
+                                onClick={() => {
+                                  addItem(item);
+                                  toast.success(`${item.name} added`);
+                                }}
+                                whileTap={{ scale: 0.94 }}
+                                className="w-full py-1.5 sm:py-2 rounded-lg sm:rounded-xl bg-accent/10 border border-accent/40 text-accent text-xs sm:text-sm font-medium hover:bg-accent hover:text-background transition-all flex items-center justify-center gap-1 sm:gap-2"
                               >
-                                <Minus size={14} className="text-text-primary" />
+                                <Plus size={13} />
+                                <span className="hidden xs:inline">Add</span>
+                                <span className="xs:hidden">Add</span>
                               </motion.button>
-                              <motion.span
-                                key={qty}
-                                initial={{ scale: 1.4, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="font-bold text-text-primary"
+                            ) : (
+                              <motion.div
+                                key="qty"
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ duration: 0.18 }}
+                                className="flex items-center justify-between"
                               >
-                                {qty}
-                              </motion.span>
-                              <motion.button
-                                id={`inc-${item.id}`}
-                                onClick={() => addItem(item)}
-                                whileTap={{ scale: 0.88 }}
-                                className="w-9 h-9 rounded-full bg-accent flex items-center justify-center hover:opacity-90 transition-opacity"
-                              >
-                                <Plus size={14} className="text-background" />
-                              </motion.button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                                <motion.button
+                                  id={`dec-${item.id}`}
+                                  onClick={() => updateQuantity(item.id, qty - 1)}
+                                  whileTap={{ scale: 0.88 }}
+                                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-surface-2 border border-border flex items-center justify-center hover:border-accent transition-colors"
+                                >
+                                  <Minus size={12} className="text-text-primary" />
+                                </motion.button>
+                                <motion.span
+                                  key={qty}
+                                  initial={{ scale: 1.4, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  className="font-bold text-text-primary text-sm"
+                                >
+                                  {qty}
+                                </motion.span>
+                                <motion.button
+                                  id={`inc-${item.id}`}
+                                  onClick={() => addItem(item)}
+                                  whileTap={{ scale: 0.88 }}
+                                  className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-accent flex items-center justify-center hover:opacity-90 transition-opacity"
+                                >
+                                  <Plus size={12} className="text-background" />
+                                </motion.button>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       </div>
                     </motion.div>
                   );
@@ -372,13 +375,13 @@ export default function MenuPageClient() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 80 }}
             transition={{ type: "spring", stiffness: 300, damping: 22 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 md:hidden"
+            className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 md:hidden w-[90vw] max-w-sm"
           >
             <motion.button
               id="floating-cart-btn"
               onClick={() => setCartOpen(true)}
               whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-3 px-6 py-3.5 rounded-full bg-gradient-gold text-background font-semibold shadow-gold-lg hover:opacity-90 transition-opacity"
+              className="w-full flex items-center justify-between gap-3 px-5 py-3.5 rounded-full bg-gradient-gold text-background font-semibold shadow-gold-lg hover:opacity-90 transition-opacity"
             >
               <ShoppingCart size={20} />
               <span>View Cart · Rs. {useCartStore.getState().total()}</span>

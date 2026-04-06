@@ -106,7 +106,7 @@ export default function HeroSection() {
       <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl pointer-events-none animate-gold-pulse" />
 
       <div className="container-section relative z-10 pt-24 pb-16">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
           {/* ── Left: Text with scroll parallax ── */}
           <motion.div
@@ -125,7 +125,7 @@ export default function HeroSection() {
 
             <motion.h1
               variants={textItem}
-              className="font-serif text-5xl md:text-6xl lg:text-7xl font-bold leading-tight"
+              className="font-serif text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight"
             >
               Delicious Food &{" "}
               <span className="text-gradient-gold">Wonderful</span> Eating
@@ -134,25 +134,25 @@ export default function HeroSection() {
 
             <motion.p
               variants={textItem}
-              className="text-text-muted text-lg max-w-md leading-relaxed"
+              className="text-text-muted text-base sm:text-lg max-w-md leading-relaxed"
             >
               Immerse yourself in the rich flavors of authentic Nepali and
               Himalayan cuisine. Every dish tells a story of tradition and love
               for food.
             </motion.p>
 
-            <motion.div variants={textItem} className="flex flex-wrap gap-4">
+            <motion.div variants={textItem} className="flex flex-wrap gap-3 sm:gap-4">
               <Link
                 href="/menu"
                 id="hero-order-btn"
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-gold text-background font-semibold hover:opacity-90 transition-all hover:shadow-gold-lg hover:scale-105 active:scale-95"
+                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-gradient-gold text-background font-semibold hover:opacity-90 transition-all hover:shadow-gold-lg hover:scale-105 active:scale-95 text-sm sm:text-base"
               >
                 Order Now
               </Link>
               <Link
                 href="#featured"
                 id="hero-explore-btn"
-                className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full border border-accent/40 text-text-primary font-semibold hover:border-accent hover:bg-accent/10 transition-all"
+                className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full border border-accent/40 text-text-primary font-semibold hover:border-accent hover:bg-accent/10 transition-all text-sm sm:text-base"
               >
                 Explore Menu
               </Link>
@@ -186,11 +186,11 @@ export default function HeroSection() {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ duration: 0.9, delay: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
             style={{ y: dishY, opacity: dishOpacity, scale: dishScale }}
-            className="relative hidden lg:block"
+            className="relative block"
           >
             {/* Perspective root — all 3D transforms need this ancestor */}
             <div
-              className="relative w-full aspect-square max-w-xl ml-auto"
+              className="relative w-full aspect-square max-w-xs sm:max-w-sm lg:max-w-xl mx-auto lg:ml-auto"
               style={{ perspective: "1100px", perspectiveOrigin: "50% 50%" }}
             >
 
