@@ -1,11 +1,11 @@
 import { Router, Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma";
 import { authMiddleware } from "../middlewares/auth";
 import { io } from "../index";
 import { emitNewOrder, emitOrderStatusUpdate } from "../socket";
 
 const router = Router();
-const prisma = new PrismaClient();
+
 
 // POST /api/orders — customer places order
 router.post("/", async (req: Request, res: Response) => {
