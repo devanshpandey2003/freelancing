@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=apps/server\" \"npm run dev --workspace=apps/web\"",
-    "build": "npm run build --workspace=apps/web && npm run build --workspace=apps/server",
+    "build": "npm run db:generate && npm run build --workspace=apps/web && npm run build --workspace=apps/server",
     "db:generate": "npm run generate --workspace=packages/prisma",
     "db:migrate": "npm run migrate --workspace=packages/prisma",
     "db:seed": "npm run seed --workspace=packages/prisma",
