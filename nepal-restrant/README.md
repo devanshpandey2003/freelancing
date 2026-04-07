@@ -1,6 +1,6 @@
 # Haveli Restaurant — Full-Stack Web Application
 
-A complete restaurant management system with QR-code-based table ordering, real-time admin panel, and a premium dark-themed Next.js frontend.
+A complete restaurant management system with QR-code-based table ordering, real-time admin panel, audio order notifications, and a premium dark-themed Next.js frontend.
 
 ---
 
@@ -13,9 +13,29 @@ A complete restaurant management system with QR-code-based table ordering, real-
 | Database | PostgreSQL + Prisma ORM |
 | Real-time | Socket.io |
 | Auth | JWT (multi-user admin) |
+| Animations | Framer Motion |
 | QR Codes | `qrcode` npm package |
 | Image Upload | Multer (local storage) |
 | Deployment | Vercel (frontend) + Railway (backend) |
+
+---
+
+## Features
+
+### Customer-Facing
+- **QR code ordering** — scan a table QR code, browse the menu, and place an order directly from your phone
+- **Mobile-first menu** — hamburger drawer for category navigation, 2-per-row item grid optimised for small screens
+- **Live cart** — Zustand-powered cart persisted in localStorage; floating cart button shows total
+- **Real-time order status** — customers see their order progress (Pending → Preparing → Served) via Socket.io
+
+### Admin Panel
+- **Live order board** — kanban columns (Pending / Preparing / Served / Cancelled) updated instantly via Socket.io
+- **Audio notifications** — synthesised Web Audio API tones play on every new or updated order; no audio file dependencies
+- **Rich notification cards** — slide-in cards show table number, item list, total, and a one-click link to the order
+- **Menu management** — full CRUD with image uploads
+- **Dashboard stats** — today's orders, revenue, per-status counts, and live table occupancy
+- **QR code generator** — view and download QR codes for all 5 tables
+- **Team management** — Super Admin can create/delete Staff accounts
 
 ---
 
@@ -32,21 +52,23 @@ haveli/
 │   │       │   ├── order-success/     # Order confirmation
 │   │       │   └── admin/             # Admin panel
 │   │       │       ├── page.tsx       # Login
-│   │       │       ├── layout.tsx     # Sidebar layout
+│   │       │       ├── layout.tsx     # Sidebar layout + global notifications
 │   │       │       ├── dashboard/     # Stats
 │   │       │       ├── orders/        # Real-time orders (kanban)
 │   │       │       ├── menu/          # Menu CRUD
+│   │       │       ├── inventory/     # Inventory tracking
 │   │       │       ├── qr-codes/      # QR code display
 │   │       │       └── team/          # Admin user management
 │   │       ├── components/
 │   │       │   ├── landing/           # Hero, Navbar, etc.
-│   │       │   └── menu/              # MenuPageClient, CartDrawer
+│   │       │   ├── menu/              # MenuPageClient, CartDrawer
+│   │       │   └── admin/             # OrderNotifications
 │   │       ├── lib/api.ts             # Axios API client
 │   │       └── store/cart.ts          # Zustand cart store
 │   └── server/                 # Express API
 │       └── src/
 │           ├── index.ts               # App entry point
-│           ├── socket.ts              # Socket.io setup
+│           ├── socket.ts              # Socket.io setup + emit helpers
 │           ├── routes/
 │           │   ├── auth.ts            # Login/register/admin mgmt
 │           │   ├── menu.ts            # Menu CRUD
@@ -77,14 +99,12 @@ haveli/
 git clone <repo-url>
 cd haveli
 
-# Install all workspace dependencies
 npm install
 ```
 
 ### Step 2 — Environment Variables
 
 ```bash
-# Copy example env files
 cp .env.example .env
 cp apps/server/.env.example apps/server/.env
 cp apps/web/.env.example apps/web/.env.local
@@ -112,42 +132,30 @@ docker-compose up -d
 
 This starts:
 - PostgreSQL on port `5432`
-- pgAdmin on port `5050` (visit http://localhost:5050, use admin@haveli.com / admin)
+- pgAdmin on port `5050` (visit http://localhost:5050, credentials: `admin@haveli.com` / `admin`)
 
 ### Step 4 — Database Setup
 
 ```bash
-# Navigate to prisma package
 cd packages/prisma
-
-# Install dependencies
 npm install
-
-# Generate Prisma client
 npm run generate
-
-# Run migrations
 npm run migrate
-
-# Seed with all menu items + default admin
 npm run seed
 ```
 
 ### Step 5 — Run the Application
 
 ```bash
-# From root directory — starts both server and web app
+# From repo root — starts both server and web app in parallel
 npm run dev
 ```
 
 Or run individually:
 
 ```bash
-# Backend (port 4000)
-npm run dev --workspace=apps/server
-
-# Frontend (port 3000)
-npm run dev --workspace=apps/web
+npm run dev --workspace=apps/server   # port 4000
+npm run dev --workspace=apps/web      # port 3000
 ```
 
 ### Step 6 — Open the App
@@ -180,7 +188,7 @@ npm run dev --workspace=apps/web
 ### Menu
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| GET | `/api/menu` | No | All available items (grouped) |
+| GET | `/api/menu` | No | All available items (grouped by category) |
 | GET | `/api/menu/all` | Yes | All items including hidden |
 | POST | `/api/menu` | Yes | Create item |
 | PUT | `/api/menu/:id` | Yes | Update item |
@@ -200,42 +208,30 @@ npm run dev --workspace=apps/web
 | GET | `/api/qr` | No | All 5 QR codes |
 | GET | `/api/qr/:tableId` | No | Single QR code |
 | GET | `/api/qr/:tableId?format=png` | No | Download QR as PNG |
-| POST | `/api/upload` | Yes | Upload image |
+| POST | `/api/upload` | Yes | Upload menu item image |
 | GET | `/api/dashboard` | Yes | Dashboard stats |
 
 ### Socket.io Events
 
-| Event | Direction | Description |
-|---|---|---|
-| `join:admin` | Client → Server | Admin subscribes to all orders |
-| `join:table` | Client → Server | Customer subscribes to table updates |
-| `order:new` | Server → Admin | New order placed |
-| `order:status_updated` | Server → All | Order status changed |
+| Event | Direction | Payload | Description |
+|---|---|---|---|
+| `join:admin` | Client → Server | — | Admin subscribes to all order events |
+| `join:table` | Client → Server | `tableId: number` | Customer subscribes to their table |
+| `order:new` | Server → Admin | Full order object | New order placed by a customer |
+| `order:status_updated` | Server → Admin + Table | `{ orderId, status, order }` | Order status changed by admin |
 
 ---
 
-## Deployment
+## Order Notifications
 
-### Frontend → Vercel
+When any admin page is open, a global notification system listens for Socket.io events and:
 
-1. Push to GitHub
-2. Import repo at [vercel.com](https://vercel.com)
-3. Set root directory to `apps/web`
-4. Add environment variables:
-   - `NEXT_PUBLIC_API_URL` = your Railway backend URL
-   - `NEXT_PUBLIC_SOCKET_URL` = your Railway backend URL
-
-### Backend → Railway
-
-1. Create new project at [railway.app](https://railway.app)
-2. Add PostgreSQL service (Railway provides `DATABASE_URL` automatically)
-3. Connect your GitHub repo
-4. Set root directory to monorepo root
-5. Railway uses `railway.json` for build/start commands
-6. Add environment variables:
-   - `JWT_SECRET` = long random string
-   - `CLIENT_URL` = your Vercel frontend URL
-7. After first deploy, run: `npm run db:migrate:prod` and `npm run db:seed`
+1. **Plays a synthesised sound** via the Web Audio API (no audio files needed)
+   - New order → three ascending notes (C5 → E5 → G5)
+   - Status update → single soft chime
+2. **Shows a slide-in card** (top-right) with table number, item summary, total, and a direct link to the orders board
+3. Cards **auto-dismiss after 8 seconds** with a draining progress bar, or can be closed manually
+4. Up to 4 notification cards stack simultaneously
 
 ---
 
@@ -243,24 +239,25 @@ npm run dev --workspace=apps/web
 
 Each table (1–5) has a unique QR code that encodes:
 ```
-https://your-domain.vercel.app/menu?table=1
+https://your-domain.vercel.app/menu?table=N
 ```
 
 When scanned:
-1. Customer's browser opens the menu page
-2. Table ID is automatically read from the URL
-3. All cart actions and the final order include the table ID
-4. Admin sees orders labeled by table number
+1. Customer's browser opens the mobile-optimised menu page
+2. Table ID is read from the URL and stored in the cart
+3. All orders are tagged with the table number
+4. Admin sees orders labelled by table on the kanban board
 
-**Generate QR codes:** Visit `/admin/qr-codes` and print them.
+Generate and print QR codes from `/admin/qr-codes`.
 
 ---
 
 ## Menu Categories
 
-The menu includes 90+ items across 15 categories:
-- Soup (Veg/Chicken/Thukpa)
-- Chicken Momo (Steam/Fry/Jhol/Chilly/Kothey)
+90+ items across 15 categories:
+
+- Soup (Veg / Chicken / Thukpa)
+- Chicken Momo (Steam / Fry / Jhol / Chilly / Kothey)
 - Veg Momo
 - Chicken
 - Veg Items
@@ -274,3 +271,25 @@ The menu includes 90+ items across 15 categories:
 - Soft Drinks
 - Beer
 - Tea & Coffee
+
+---
+
+## Deployment
+
+### Frontend → Vercel
+
+1. Push to GitHub and import the repo at [vercel.com](https://vercel.com)
+2. Set root directory to `apps/web`
+3. Add environment variables:
+   - `NEXT_PUBLIC_API_URL` = your Railway backend URL
+   - `NEXT_PUBLIC_SOCKET_URL` = your Railway backend URL
+
+### Backend → Railway
+
+1. Create a new project at [railway.app](https://railway.app)
+2. Add a PostgreSQL service (Railway provides `DATABASE_URL` automatically)
+3. Connect your GitHub repo; set build/start commands via `railway.json`
+4. Add environment variables:
+   - `JWT_SECRET` = long random string
+   - `CLIENT_URL` = your Vercel frontend URL
+5. After first deploy: `npm run db:migrate:prod && npm run db:seed`
