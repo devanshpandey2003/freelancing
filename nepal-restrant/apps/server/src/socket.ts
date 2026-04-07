@@ -31,7 +31,7 @@ export function emitNewOrder(io: Server, order: object) {
 export function emitOrderStatusUpdate(
   io: Server,
   tableId: number,
-  payload: { orderId: string; status: string }
+  payload: { orderId: string; status: string; order?: object }
 ) {
   io.to("admin_room").emit("order:status_updated", payload);
   io.to(`table_${tableId}`).emit("order:status_updated", payload);

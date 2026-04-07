@@ -109,6 +109,7 @@ router.patch("/:id/status", authMiddleware, async (req: Request, res: Response) 
   emitOrderStatusUpdate(io, updated.tableId, {
     orderId: updated.id,
     status: updated.status,
+    order: updated,
   });
 
   return res.json(updated);

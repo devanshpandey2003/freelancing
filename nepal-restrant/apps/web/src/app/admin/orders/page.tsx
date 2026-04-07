@@ -45,7 +45,6 @@ export default function AdminOrdersPage() {
 
     socket.on("order:new", (newOrder: any) => {
       setOrders((prev) => [newOrder, ...prev]);
-      toast.success(`🔔 New order from Table ${newOrder.tableId}!`);
     });
 
     socket.on("order:status_updated", (update: { orderId: string; status: string }) => {

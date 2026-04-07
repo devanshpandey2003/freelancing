@@ -14,6 +14,7 @@ import {
   ChefHat,
   Package,
 } from "lucide-react";
+import OrderNotifications from "@/components/admin/OrderNotifications";
 
 const navItems = [
   { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -144,6 +145,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {children}
         </main>
       </div>
+
+      {/* Global order notifications (sound + card) */}
+      <OrderNotifications />
     </div>
   );
 }
